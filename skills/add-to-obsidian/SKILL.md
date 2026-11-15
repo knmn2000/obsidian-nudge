@@ -85,6 +85,15 @@ Folder layout (verify with `ls` before writing, the vault changes):
    - Use a different commit message verb (`update:`) when appending to an existing note. Never force-push.
 6. **Report.** Two or three lines: files written or appended, number of quiz questions added, links added (outgoing and incoming), and the pushed commit hash. Quote nothing else back.
 
+## Quiz-only requests
+
+When the user asks for more or better quiz questions on a note that already exists ("add quiz questions for kafka", "quiz me on Split brain", "backfill quizzes") and no new concept was learned, do not rewrite the note:
+
+1. Find the note (step 2's `find`). Read it fully.
+2. Write new questions that follow the quiz rules above and do not repeat existing `Q:` lines. Append them to the end of its `## Quiz` section, or create the section at the end of the file if there is none (nothing may follow it).
+3. Commit with `update: quiz for <Note>` and push exactly as in step 5. The Obsidian Nudge app downloads the vault from GitHub on its next sync, so the phone gets the new questions without any cable or manual step.
+4. Report the note and how many questions were added.
+
 ## Rules
 
 - Never overwrite or delete existing note content. Append or fill empty files only.
