@@ -4,8 +4,6 @@ import '../notes/note.dart';
 
 enum Rating { didntGetIt, forgot, meh, knowIt }
 
-final _epoch = DateTime.fromMillisecondsSinceEpoch(0);
-
 class ReviewState {
   final DateTime dueAt;
   final DateTime? snoozedUntil;
@@ -37,7 +35,7 @@ ReviewState rate(Rating r, DateTime now) => ReviewState(
 );
 
 ReviewState snooze(ReviewState? s, DateTime now) => ReviewState(
-  dueAt: s?.dueAt ?? _epoch,
+  dueAt: s?.dueAt ?? now,
   snoozedUntil: now.add(const Duration(days: 1)),
 );
 
@@ -51,7 +49,7 @@ Note? pickNext(
   DateTime? bestDue;
   for (final note in notes) {
     final s = states[note.path];
-    final due = s?.dueAt ?? _epoch;
+    final due = s?.dueAt ?? now;
     final snoozed = s?.snoozedUntil;
     if (due.isAfter(now) || (snoozed != null && snoozed.isAfter(now))) continue;
     if (bestDue == null || due.isBefore(bestDue)) {

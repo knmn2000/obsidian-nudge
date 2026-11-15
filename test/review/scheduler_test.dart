@@ -6,7 +6,6 @@ import 'package:obsidian_nudge/review/scheduler.dart';
 
 Note n(String p) => Note(path: p, title: p, firstLine: '', body: p);
 final now = DateTime.utc(2026, 1, 10, 12);
-final epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
 void main() {
   group('rate', () {
@@ -29,8 +28,8 @@ void main() {
       expect(s.dueAt, due);
       expect(s.snoozedUntil, now.add(const Duration(days: 1)));
     });
-    test('null state uses epoch', () {
-      expect(snooze(null, now).dueAt, epoch);
+    test('null state is due now', () {
+      expect(snooze(null, now).dueAt, now);
     });
   });
 
@@ -105,9 +104,15 @@ void main() {
       };
       expect(pickNext([n('a')], states, now, rng), isNull);
     });
-    test('never-seen beats seen-overdue', () {
+    test('seen-overdue beats never-seen', () {
       final states = {
         'a': ReviewState(dueAt: now.subtract(const Duration(days: 1))),
+      };
+      expect(pickNext([n('a'), n('new')], states, now, rng)!.path, 'a');
+    });
+    test('never-seen picked when no rated note is due', () {
+      final states = {
+        'a': ReviewState(dueAt: now.add(const Duration(hours: 4))),
       };
       expect(pickNext([n('a'), n('new')], states, now, rng)!.path, 'new');
     });
