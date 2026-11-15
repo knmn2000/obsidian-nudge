@@ -21,20 +21,28 @@ Future<(Store, Directory)> _setup() async {
 }
 
 // Home route pushes NoteScreen so pop is observable.
-Widget _host(Widget Function() screen) => MaterialApp(
-  home: Builder(
-    builder: (context) => Scaffold(
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute<void>(builder: (_) => screen())),
-          child: const Text('open'),
+class _PopCounter extends NavigatorObserver {
+  int pops = 0;
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) => pops++;
+}
+
+Widget _host(Widget Function() screen, [NavigatorObserver? observer]) =>
+    MaterialApp(
+      navigatorObservers: [?observer],
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute<void>(builder: (_) => screen())),
+              child: const Text('open'),
+            ),
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
 
 void main() {
   testWidgets('shows note and all four rating buttons', (tester) async {
@@ -88,5 +96,41 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('This note no longer exists'), findsOneWidget);
+  });
+
+  testWidgets('double tap saves and pops once', (tester) async {
+    final (store, dir) = await _setup();
+    final observer = _PopCounter();
+    await tester.pumpWidget(
+      _host(
+        () => NoteScreen(
+          path: 'a.md',
+          store: store,
+          cacheDir: dir,
+          now: () => _now,
+        ),
+        observer,
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    // Fire both before any async work completes (taps while the pop animates
+    // reach the stale route; tester.tap would miss it).
+    FilledButton button(String l) =>
+        tester.widget(find.widgetWithText(FilledButton, l));
+    final meh = button('Meh').onPressed!;
+    final knowIt = button('Know it').onPressed!;
+    meh();
+    knowIt();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(observer.pops, 1);
+    expect(find.text('open'), findsOneWidget);
+    expect(find.text('Meh'), findsNothing);
+    expect(
+      (await store.loadStates())['a.md']!.dueAt,
+      DateTime.utc(2026, 5, 4, 12),
+    );
   });
 }

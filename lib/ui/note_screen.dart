@@ -28,6 +28,7 @@ class NoteScreen extends StatefulWidget {
 
 class _NoteScreenState extends State<NoteScreen> {
   late final Future<Note?> _note = _load();
+  bool _rating = false;
 
   Future<Note?> _load() async {
     await widget.store.reload();
@@ -38,6 +39,8 @@ class _NoteScreenState extends State<NoteScreen> {
   }
 
   Future<void> _rate(Rating r) async {
+    if (_rating) return;
+    setState(() => _rating = true);
     await widget.store.reload();
     final states = await widget.store.loadStates();
     states[widget.path] = rate(r, widget.now());
@@ -86,7 +89,7 @@ class _NoteScreenState extends State<NoteScreen> {
                         ('Know it', Rating.knowIt),
                       ])
                         FilledButton(
-                          onPressed: () => _rate(r),
+                          onPressed: _rating ? null : () => _rate(r),
                           child: Text(label),
                         ),
                     ],

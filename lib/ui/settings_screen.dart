@@ -73,29 +73,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _sync() async {
     setState(() => _busy = true);
     try {
-      await syncOrThrow(widget.store, widget.cacheDir);
+      try {
+        await syncOrThrow(widget.store, widget.cacheDir);
+      } catch (e) {
+        await widget.store.setLastSyncError(
+          e is SyncException ? e.message : e.toString(),
+        );
+      }
+      await _refresh();
     } catch (e) {
-      await widget.store.setLastSyncError(
-        e is SyncException ? e.message : e.toString(),
-      );
+      if (mounted) _snack(e.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
-    await _refresh();
-    if (mounted) setState(() => _busy = false);
   }
 
   Future<void> _nudge() async {
     setState(() => _busy = true);
-    final sent = await runNudge(
-      store: widget.store,
-      cacheDir: widget.cacheDir,
-      sink: widget.sink,
-      now: DateTime.now(),
-      rng: Random(),
-      ignoreQuietHours: true,
-    );
-    if (!mounted) return;
-    setState(() => _busy = false);
-    _snack(sent ? 'Notification sent' : 'No note is due, nothing sent');
+    try {
+      await widget.store.reload();
+      final sent = await runNudge(
+        store: widget.store,
+        cacheDir: widget.cacheDir,
+        sink: widget.sink,
+        now: DateTime.now(),
+        rng: Random(),
+        ignoreQuietHours: true,
+      );
+      if (mounted) {
+        _snack(sent ? 'Notification sent' : 'No note is due, nothing sent');
+      }
+    } catch (e) {
+      if (mounted) _snack('Nudge failed: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Widget _hours(
