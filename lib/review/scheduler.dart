@@ -13,8 +13,9 @@ class ReviewState {
   const ReviewState({required this.dueAt, this.snoozedUntil});
 
   Map<String, dynamic> toJson() => {
-    'dueAt': dueAt.toIso8601String(),
-    'snoozedUntil': snoozedUntil?.toIso8601String(),
+    // UTC so the instant survives timezone/DST changes.
+    'dueAt': dueAt.toUtc().toIso8601String(),
+    'snoozedUntil': snoozedUntil?.toUtc().toIso8601String(),
   };
 
   factory ReviewState.fromJson(Map<String, dynamic> j) => ReviewState(

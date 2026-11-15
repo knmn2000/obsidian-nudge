@@ -49,6 +49,23 @@ void main() {
     });
   });
 
+  group('ReviewState json local time', () {
+    test('local values serialize as UTC and keep the instant', () {
+      final due = DateTime(2026, 11, 1, 1, 30);
+      final snoozed = DateTime(2026, 11, 2, 1, 30);
+      final j = ReviewState(dueAt: due, snoozedUntil: snoozed).toJson();
+      expect(j['dueAt'], due.toUtc().toIso8601String());
+      expect(j['snoozedUntil'], snoozed.toUtc().toIso8601String());
+      expect((j['dueAt'] as String).endsWith('Z'), isTrue);
+      final back = ReviewState.fromJson(j);
+      expect(back.dueAt.isAtSameMomentAs(due), isTrue);
+      expect(back.snoozedUntil!.isAtSameMomentAs(snoozed), isTrue);
+      final noSnooze = ReviewState.fromJson(ReviewState(dueAt: due).toJson());
+      expect(noSnooze.dueAt.isAtSameMomentAs(due), isTrue);
+      expect(noSnooze.snoozedUntil, isNull);
+    });
+  });
+
   group('pickNext', () {
     final rng = Random(1);
     test('most overdue wins', () {
