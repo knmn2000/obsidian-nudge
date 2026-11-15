@@ -27,7 +27,8 @@ void main() {
     );
     final dir = Directory.systemTemp.createTempSync('settings_screen_test');
     addTearDown(() => dir.deleteSync(recursive: true));
-    File('${dir.path}/a.md').writeAsStringSync('# Alpha\n\nbody');
+    Directory('${dir.path}/CSE stuff').createSync();
+    File('${dir.path}/CSE stuff/a.md').writeAsStringSync('# Alpha\n\nbody');
 
     await tester.pumpWidget(
       MaterialApp(

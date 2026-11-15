@@ -45,6 +45,32 @@ Widget _host(Widget Function() screen, [NavigatorObserver? observer]) =>
     );
 
 void main() {
+  testWidgets('quiz answers are hidden until the question is tapped', (
+    tester,
+  ) async {
+    final (store, dir) = await _setup();
+    File('${dir.path}/a.md').writeAsStringSync(
+      '# Alpha\n\nHello body text\n\n## Quiz\nQ: Why alpha?\nA: Because first.',
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: NoteScreen(
+          path: 'a.md',
+          store: store,
+          cacheDir: dir,
+          now: () => _now,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Why alpha?'), findsOneWidget);
+    expect(find.text('Hello body text'), findsOneWidget);
+    expect(find.text('Because first.'), findsNothing);
+    await tester.tap(find.text('Why alpha?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Because first.'), findsOneWidget);
+  });
+
   testWidgets('shows note and all four rating buttons', (tester) async {
     final (store, dir) = await _setup();
     await tester.pumpWidget(

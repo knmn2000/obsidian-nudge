@@ -47,6 +47,7 @@ void main() {
     now: at,
     rng: Random(1),
     ignoreQuietHours: ignoreQuietHours,
+    folder: null,
   );
 
   Future<void> notDue(String path) =>
@@ -67,6 +68,42 @@ void main() {
         expect(states['b.md']!.dueAt, now.add(Duration(days: 1)).toUtc());
       },
     );
+
+    test('default folder nudges only notes under CSE stuff/', () async {
+      Directory('${cache.path}/CSE stuff').createSync();
+      File('${cache.path}/CSE stuff/c.md').writeAsStringSync('# Gamma\ng');
+      File('${cache.path}/CSE stuffed.md').writeAsStringSync('# Decoy\nd');
+      final ok = await runNudge(
+        store: store,
+        cacheDir: cache,
+        sink: sink,
+        now: now,
+        rng: Random(1),
+      );
+      expect(ok, isTrue);
+      expect(sink.calls, [('Gamma', 'g', 'CSE stuff/c.md')]);
+    });
+
+    test('note with a quiz nudges with one of its questions', () async {
+      File(
+        '${cache.path}/a.md',
+      ).writeAsStringSync('# Alpha\nbody\n\n## Quiz\nQ: Why?\nA: Because.');
+      await notDue('b.md');
+      expect(await nudge(now), isTrue);
+      expect(sink.calls, [('Alpha', 'Quiz: Why?', 'a.md')]);
+    });
+
+    test('nothing to nudge when the folder has no notes', () async {
+      final ok = await runNudge(
+        store: store,
+        cacheDir: cache,
+        sink: sink,
+        now: now,
+        rng: Random(1),
+      );
+      expect(ok, isFalse);
+      expect(sink.calls, isEmpty);
+    });
 
     test('empty firstLine falls back to the title', () async {
       await notDue('a.md');

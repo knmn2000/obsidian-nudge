@@ -72,4 +72,47 @@ void main() {
       expect(parseNote('KANBAN.md', '# K\nx'), isNull);
     });
   });
+
+  group('quiz section', () {
+    const md =
+        '# Kafka\n\na log of events\n\n## Related\n- x\n\n## Quiz\n'
+        'Q: Why a log?\nA: Replayable.\nQ: What is a partition?\nA: A shard.\n'
+        'continued line\n\n## After\ntail';
+
+    test('parses Q/A pairs and joins continuation lines to the answer', () {
+      final n = parseNote('a.md', md)!;
+      expect(n.quiz.length, 2);
+      expect(n.quiz[0].question, 'Why a log?');
+      expect(n.quiz[0].answer, 'Replayable.');
+      expect(n.quiz[1].answer, 'A shard.\ncontinued line');
+    });
+
+    test('quiz is removed from body but later headings stay', () {
+      final n = parseNote('a.md', md)!;
+      expect(n.body, isNot(contains('Why a log')));
+      expect(n.body, contains('## Related'));
+      expect(n.body, contains('## After\ntail'));
+    });
+
+    test('quiz never becomes the firstLine', () {
+      final n = parseNote('a.md', '# T\n\n## Quiz\nQ: q?\nA: a.')!;
+      expect(n.firstLine, '');
+      expect(n.quiz.length, 1);
+    });
+
+    test('heading match is case-insensitive; Q without A is dropped', () {
+      final n = parseNote('a.md', '# T\nx\n## quiz\nQ: lonely\nQ: q?\nA: a')!;
+      expect(n.quiz.map((e) => e.question), ['q?']);
+    });
+
+    test('a ## Quiz inside a code fence is not a quiz', () {
+      final n = parseNote('a.md', '# T\n```\n## Quiz\nQ: q\nA: a\n```\nend')!;
+      expect(n.quiz, isEmpty);
+      expect(n.body, contains('## Quiz'));
+    });
+
+    test('note without quiz has empty list', () {
+      expect(parseNote('a.md', '# T\nx')!.quiz, isEmpty);
+    });
+  });
 }

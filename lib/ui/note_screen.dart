@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/store.dart';
 import '../notes/note.dart';
+import '../notes/obsidian_link.dart';
 import '../review/scheduler.dart';
 import '../sync/github_sync.dart';
 
@@ -48,6 +50,19 @@ class _NoteScreenState extends State<NoteScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  Future<void> _openInObsidian(String path) async {
+    final messenger = ScaffoldMessenger.of(context);
+    var ok = false;
+    try {
+      ok = await launchUrl(obsidianLink(path));
+    } catch (_) {}
+    if (!ok) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not open Obsidian')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Note?>(
@@ -66,14 +81,47 @@ class _NoteScreenState extends State<NoteScreen> {
           );
         }
         return Scaffold(
-          appBar: AppBar(title: Text(note.title)),
+          appBar: AppBar(
+            title: Text(note.title),
+            actions: [
+              IconButton(
+                tooltip: 'View in Obsidian',
+                icon: const Icon(Icons.open_in_new),
+                onPressed: () => _openInObsidian(note.path),
+              ),
+            ],
+          ),
           body: SafeArea(
             child: Column(
               children: [
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
-                    child: MarkdownBody(data: note.body),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (note.quiz.isNotEmpty) ...[
+                          Text(
+                            'Quiz',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          for (final item in note.quiz)
+                            ExpansionTile(
+                              tilePadding: EdgeInsets.zero,
+                              childrenPadding: const EdgeInsets.only(
+                                bottom: 12,
+                              ),
+                              expandedCrossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              title: Text(item.question),
+                              subtitle: const Text('Tap to show answer'),
+                              children: [Text(item.answer)],
+                            ),
+                          const Divider(height: 32),
+                        ],
+                        MarkdownBody(data: note.body),
+                      ],
+                    ),
                   ),
                 ),
                 Padding(
