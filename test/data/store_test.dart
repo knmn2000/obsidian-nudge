@@ -29,13 +29,15 @@ void main() {
 
   test('settings round-trip', () async {
     final (store, prefs, _) = await make();
-    await store.saveSettings(const Settings().copyWith(
-      repo: 'a/b',
-      branch: 'dev',
-      nudgeHours: 3,
-      quietStart: 22,
-      quietEnd: 7,
-    ));
+    await store.saveSettings(
+      const Settings().copyWith(
+        repo: 'a/b',
+        branch: 'dev',
+        nudgeHours: 3,
+        quietStart: 22,
+        quietEnd: 7,
+      ),
+    );
     final s = await Store(prefs, MemoryTokenStore()).settings();
     expect(s.repo, 'a/b');
     expect(s.branch, 'dev');
@@ -87,5 +89,16 @@ void main() {
     expect(store.lastSyncError, 'boom');
     await store.setLastSyncError(null);
     expect(store.lastSyncError, isNull);
+  });
+
+  test('reload picks up writes made by another isolate', () async {
+    final (store, _, _) = await make();
+    expect(await store.loadStates(), isEmpty);
+    SharedPreferences.setMockInitialValues({
+      'review_states':
+          '{"a.md":{"dueAt":"2026-01-02T00:00:00.000Z","snoozedUntil":null}}',
+    });
+    await store.reload();
+    expect((await store.loadStates())['a.md']!.dueAt, DateTime.utc(2026, 1, 2));
   });
 }

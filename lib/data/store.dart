@@ -74,6 +74,9 @@ class Store {
   static const _lastSync = 'last_sync';
   static const _lastSyncError = 'last_sync_error';
 
+  /// The background isolate writes prefs; re-read them in the foreground.
+  Future<void> reload() => _p.reload();
+
   Future<String?> token() => _tokens.read();
   Future<void> setToken(String t) => _tokens.write(t);
 
