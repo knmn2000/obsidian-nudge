@@ -45,10 +45,10 @@ Future<int> syncNotes({
           },
         )
         .timeout(const Duration(seconds: 60));
-  } on SocketException {
-    throw const SyncException('Network error. Check your connection.');
+  } on IOException {
+    throw const SyncException('Network error while contacting GitHub.');
   } on http.ClientException {
-    throw const SyncException('Network error. Check your connection.');
+    throw const SyncException('Network error while contacting GitHub.');
   } on TimeoutException {
     throw const SyncException('Sync timed out. Try again.');
   }

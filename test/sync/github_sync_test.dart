@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -106,6 +107,29 @@ void main() {
       expect(File('${cache.path}/old.md').readAsStringSync(), 'old');
     },
   );
+
+  for (final (name, error) in <(String, Object)>[
+    ('handshake', const HandshakeException('x')),
+    ('client', http.ClientException('x')),
+    ('timeout', TimeoutException('x')),
+  ]) {
+    test(
+      '$name error throws SyncException and leaves cache untouched',
+      () async {
+        cache.createSync();
+        File('${cache.path}/old.md').writeAsStringSync('old');
+        await expectLater(
+          run(MockClient((_) async => throw error)),
+          throwsA(
+            isA<SyncException>()
+                .having((e) => e.statusCode, 'code', null)
+                .having((e) => e.message, 'message', isNot(contains('tok123'))),
+          ),
+        );
+        expect(File('${cache.path}/old.md').readAsStringSync(), 'old');
+      },
+    );
+  }
 
   test('corrupt zip throws and leaves cache untouched', () async {
     cache.createSync();
