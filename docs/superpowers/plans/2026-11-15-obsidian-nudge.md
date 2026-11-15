@@ -19,7 +19,7 @@
 - Rating intervals: Didn't get it, then due again at the next nudge; Forgot 1 day; Meh 3 days; Know it 21 days. Unrated notified note snoozed 1 day. Never-seen notes are due immediately.
 - No notification when nothing is due, nothing is cached, or inside quiet hours.
 - Local git only, no remotes. Commit as `git -c user.name=knmn2000 -c user.email=karan1501mannan@gmail.com commit`, message ending with the line `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`.
-- Project root `/Users/karan.mannan/personal/obsidian-nudge`. Phone adb serial `RZGL6054TDJ`.
+- Project root `<repo root>`. Phone adb serial `<device serial>`.
 - Run `flutter analyze` and `flutter test` green before every commit.
 
 ## Review Focus
@@ -154,8 +154,8 @@
 
 **Files:** none
 
-- [ ] **Step 1:** `adb devices` must list `RZGL6054TDJ` as `device`.
-- [ ] **Step 2:** Karan creates the fine-grained token (see the hand-off message). `flutter run -d RZGL6054TDJ` (or `flutter build apk --debug` then `flutter install -d RZGL6054TDJ`).
+- [ ] **Step 1:** `adb devices` must list `<device serial>` as `device`.
+- [ ] **Step 2:** Karan creates the fine-grained token (see the hand-off message). `flutter run -d <device serial>` (or `flutter build apk --debug` then `flutter install -d <device serial>`).
 - [ ] **Step 3:** In the app, paste the token in Setup. Expected: setup completes, home screen shows a note count of roughly 100 to 130 (160 files, 30 empty, plus excluded ones).
 - [ ] **Step 4:** Settings, `Nudge now`. Expected: a notification with a note title and first line. Tap it: the note renders. Tap `Meh`, then `Nudge now` again: a different note.
 - [ ] **Step 5:** `adb shell dumpsys jobscheduler | grep obsidian_nudge` shows the nudge and sync jobs registered. Report anything that failed. Commit any fixes.

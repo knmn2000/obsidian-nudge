@@ -50,7 +50,7 @@ the ones he knows.
   `products/`, `quesBank/`. Also non-note files: `Excalidraw/*.md`, `KANBAN.md`,
   daily-note style files like `2026-09-07.md`, `Untitled.md`.
 - Dev machine has Flutter 3.38 / Dart 3.10, Android SDK, JDK 21. Phone
-  (serial `RZGL6054TDJ`) currently shows `unauthorized` in `adb`: the user
+  (serial `<device serial>`) currently shows `unauthorized` in `adb`: the user
   must accept the USB-debugging prompt on the phone before install works.
 - Access token must be a fine-grained GitHub PAT, read-only, scoped to the
   one repo. The user creates it and pastes it into the app once.
